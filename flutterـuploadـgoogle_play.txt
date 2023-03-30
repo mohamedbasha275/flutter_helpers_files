@@ -1,0 +1,66 @@
+// generate keystore
+//use one of this depend on your device and jdk
+keytool -genkey -v -keystore ~/stack-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias stack
+keytool -genkey -v -keystore stack.keystore -alias stack -keyalg RSA -keysize 2048 -validity 10000
+password:stack-01-2023
+----------------------------------------
+// pres enter if you don't want enter this details
+What is your first and last name?
+----
+What is the name of your organizational unit?
+----
+What is the name of your organization?
+----
+What is the name of your City or Locality?
+----
+What is the name of your State or Province?
+----
+What is the two-letter country code for this unit?
+----/  p  yr,k
+yes
+----
+Enter key password for
+        (RETURN if same as keystore password):
+password:stack-01-2023
+-----------------------------------------------------------------------------------------
+//move key store to [project]/android/app
+//Create a file named [project]/android/key.properties that contains a reference to your keystore:
+storePassword=quran-3-2021
+keyPassword=quran-3-2021
+keyAlias=stack
+#storeFile=../app/stack-keystore.jks
+storeFile=../app/quran.keystore
+-----------------------------------------------------------------------------------------
+Configure gradle to use your upload key when building your app in release mode by editing the
+    [project]/android/app/build.gradle file.
+1-Add the keystore information from your properties file before the android block:
+   def keystoreProperties = new Properties()
+   def keystorePropertiesFile = rootProject.file('key.properties')
+   if (keystorePropertiesFile.exists()) {
+       keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+   }
+
+   android {
+         ...
+   }
+
+****
+2- Find the buildTypes block: And replace it with the following signing configuration info:
+
+   signingConfigs {
+       release {
+           keyAlias keystoreProperties['keyAlias']
+           keyPassword keystoreProperties['keyPassword']
+           storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+           storePassword keystoreProperties['storePassword']
+       }
+   }
+   buildTypes {
+       release {
+           signingConfig signingConfigs.release
+       }
+   }
+****
+3- flutter clean && flutter build appbundle --release
+****
+4- Upload your appbundle files in this directory: {project-root}/build/app/output/bundle/release/app-release.aab
